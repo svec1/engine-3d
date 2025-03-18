@@ -1,0 +1,7 @@
+﻿---
+BasedOnStyle: LLVM
+AlignConsecutiveDeclarations: 'true'
+AlignOperands: 'true'
+BreakBeforeBraces: Attach
+
+...
