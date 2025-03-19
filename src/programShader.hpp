@@ -14,8 +14,14 @@ public:
 public:
   void createShader(GLenum shaderType, std::string_view source);
   void deleteShader(GLenum shaderType);
+
   void link();
   void use();
+
+  void dump();
+
+public:
+  GLuint getLocUniform(std::string_view nameUniform);
 
 private:
   std::vector<std::unique_ptr<shader>> shaders;

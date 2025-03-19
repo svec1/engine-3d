@@ -17,3 +17,13 @@ void programShader::deleteShader(GLenum shaderType) {
 }
 void programShader::link() { glLinkProgram(handle); }
 void programShader::use() { glUseProgram(handle); }
+
+void programShader::dump() {
+  shaders.clear();
+  glDeleteProgram(handle);
+  handle = glCreateProgram();
+}
+
+GLuint programShader::getLocUniform(std::string_view nameUniform) {
+  return glGetUniformLocation(handle, nameUniform.data());
+}
