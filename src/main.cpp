@@ -5,49 +5,16 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <camera.hpp>
-#include <mesh.hpp>
-#include <programShader.hpp>
-#include <vao.hpp>
-#include <vbo.hpp>
+#include <cube.hpp>
+#include <grid.hpp>
+#include <sphere.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <algorithm>
 #include <iostream>
 
-static const std::vector<glm::vec3> vertices = {
-    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(-1.0f, 1.0f, 1.0f),
-    glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),
-    glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, -1.0f, 1.0f),
-    glm::vec3(-1.0f, 1.0f, 1.0f),   glm::vec3(-1.0f, -1.0f, -1.0f),
-    glm::vec3(-1.0f, 1.0f, 1.0f),   glm::vec3(-1.0f, 1.0f, -1.0f),
-    glm::vec3(1.0f, 1.0f, -1.0f),   glm::vec3(-1.0f, -1.0f, -1.0f),
-    glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, -1.0f),
-    glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
-    glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(-1.0f, -1.0f, -1.0f),
-    glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),
-    glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, -1.0f),
-    glm::vec3(1.0f, 1.0f, -1.0f),   glm::vec3(1.0f, -1.0f, -1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, 1.0f, -1.0f),
-    glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f),
-};
-static const std::vector<glm::vec3> colors = {
-    {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-    {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.5f, 0.0f}, {1.0f, 0.5f, 0.0f}, {1.0f, 0.5f, 0.0f},
-    {1.0f, 0.5f, 0.0f}, {1.0f, 0.5f, 0.0f}, {1.0f, 0.5f, 0.0f},
-    {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f},
-    {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f},
-    {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
-    {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
-    {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f},
-    {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}};
 static const char *vertex_shader_text =
     "#version 460\n"
     "layout (location = 0) in vec3 vPos;\n"
@@ -121,28 +88,33 @@ int main(void) {
 
   glfwWindowHint(GLFW_SAMPLES, 4);
 
-  double prevTime = glfwGetTime();
-
-  mesh cube(vertices, colors, {vertex_shader_text, fragment_shader_text});
-  mesh cube2(vertices, colors, {cube.getProgramShader()});
-
-  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 100.0f);
-  glm::mat4 V;
-
   glEnable(GL_CULL_FACE);
   glEnable(GL_MULTISAMPLE);
+  glEnable(GL_DEPTH_TEST);
 
-  float angle = 0.f;
+  double prevTime = glfwGetTime();
 
-  cube2.setPos(glm::vec3(3, 2, 2));
+  std::shared_ptr<programShader> sProgram(new programShader);
+  sProgram->createShader(GL_VERTEX_SHADER, vertex_shader_text);
+  sProgram->createShader(GL_FRAGMENT_SHADER, fragment_shader_text);
+  sProgram->link();
+
+  grid grid1(sProgram, {}, 12);
+
+  sphere sphere1(sProgram, glm::vec3{0, 1.f, 2.f});
+  sphere sphere2(sProgram, glm::vec3{0.f, 0.f, 0.f});
+
+  sphere1.setColors({400, glm::vec3(0.6f, 0.2f, 0.5f)});
+  sphere2.setColors({400, glm::vec3(0.3f, 0.6f, 0.2f)});
+
+  grid1.scale(glm::vec3{10.f, 1.f, 10.f});
+
+  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 100.0f);
 
   while (!glfwWindowShouldClose(window)) {
     double currentTime = glfwGetTime();
     double deltaTime = currentTime - prevTime;
     prevTime = currentTime;
-
-    float rotation = deltaTime / 1000.f;
-    angle += 360 * (rotation - (long)rotation);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
       cam.keyboardCallback(GLFW_KEY_W);
@@ -153,12 +125,19 @@ int main(void) {
     else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
       cam.keyboardCallback(GLFW_KEY_D);
 
-    V = cam.getViewMatrix(deltaTime);
+    glm::mat4 V = cam.getViewMatrix(deltaTime);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    if (sphere1.collision(sphere2))
+      std::cout << "collision of sphere 1 and sphere 2\r";
 
-    cube.draw(P, V);
-    cube2.draw(P, V);
+    sphere1.move(glm::vec3(0, -0.001f, -0.01f));
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    sphere1.draw(P, V);
+    // sphere2.draw(P, V);
+
+    grid1.draw(P, V, GL_LINES);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

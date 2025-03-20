@@ -7,9 +7,12 @@
 
 mesh::mesh(const std::vector<glm::vec3> &_vertecies,
            const std::vector<glm::vec3> &_colors,
-           const dataShaderProgram      &dataSProgram)
+           const dataShaderProgram     &&dataSProgram)
     : vertecies(_vertecies), colors(_colors), bufferVertecies(GL_ARRAY_BUFFER),
+      bufferElementsIndex(GL_ELEMENT_ARRAY_BUFFER),
       bufferColors(GL_ARRAY_BUFFER) {
+  if (colors.size() != vertecies.size())
+    colors = std::vector<glm::vec3>(vertecies.size(), glm::vec3(1.f, 1.f, 1.f));
   createShaderProgram(dataSProgram);
   initVAO();
 }
@@ -46,12 +49,33 @@ void mesh::initVAO() {
 
   attribObject.unbind();
 }
+void mesh::initEBO(const std::vector<unsigned int> &_indices) {
+  indices = _indices;
+
+  attribObject.bind();
+
+  bufferElementsIndex.bind();
+  bufferElementsIndex.loadData(indices.size() * sizeof(unsigned int),
+                               indices.data());
+
+  bufferElementsIndex.unbind();
+  attribObject.unbind();
+
+  _initEBO = true;
+}
 void mesh::setPos(glm::vec3 pos) {
   model = glm::translate(glm::mat4(1.f), pos);
 }
-glm::vec3 mesh::getPos() { return model[3]; }
-
-std::shared_ptr<programShader> mesh::getProgramShader() { return sProgram; }
+glm::vec3              mesh::getPos() const { return model[3]; }
+std::vector<glm::vec3> mesh::getTransformVertecies() const {
+  std::vector<glm::vec3> transformVertecies;
+  for (const auto &vertex : vertecies)
+    transformVertecies.push_back(model * glm::vec4(vertex, 1.f));
+  return transformVertecies;
+}
+std::shared_ptr<programShader> mesh::getProgramShader() const {
+  return sProgram;
+}
 
 void mesh::move(glm::vec3 nPos) { model = glm::translate(model, nPos); }
 void mesh::rotate(float angle) {
@@ -61,20 +85,44 @@ void mesh::scale(glm::vec3 scale) { model = glm::scale(model, scale); }
 
 void mesh::setData(const std::vector<glm::vec3> &_vertecies,
                    const std::vector<glm::vec3> &_colors,
-                   const dataShaderProgram      &dataSProgram) {
+                   const dataShaderProgram     &&dataSProgram) {
   sProgram->dump();
   vertecies = _vertecies;
   colors = _colors;
   createShaderProgram(dataSProgram);
   initVAO();
 }
-void mesh::draw(const glm::mat4 &projection, const glm::mat4 &view) {
+void mesh::setVBOData(const std::vector<glm::vec3> *_vertecies,
+                      const std::vector<glm::vec3> *_colors) {
+  if (_vertecies)
+    vertecies = *_vertecies;
+  if (_colors)
+    colors = *_colors;
+
+  initVAO();
+}
+void mesh::setColors(const std::vector<glm::vec3> &colors) {
+  setVBOData(nullptr, &colors);
+}
+glm::vec3 mesh::getVertex(
+    const std::vector<glm::vec3>                                 &vertecies,
+    std::function<bool(const glm::vec3 &v1, const glm::vec3 &v2)> f) {
+  glm::vec3 tmp = vertecies[0];
+  for (int i = 1; i < vertecies.size(); ++i)
+    if (!f(tmp, vertecies[i]))
+      tmp = vertecies[i];
+  return tmp;
+}
+
+void mesh::draw(const glm::mat4 &projection, const glm::mat4 &view,
+                GLenum mode) {
   if (sProgram == nullptr) {
     std::cout << "The shader program is not initialized!" << std::endl;
     return;
   }
 
   attribObject.bind();
+  bufferElementsIndex.bind();
 
   attribObject.enable(mData.layoutVec3Vertex);
   attribObject.enable(mData.layoutVec3Color);
@@ -84,10 +132,14 @@ void mesh::draw(const glm::mat4 &projection, const glm::mat4 &view) {
   glm::mat4 MVP = projection * view * model;
 
   glUniformMatrix4fv(mData.locationUniformMVP, 1, GL_FALSE, &MVP[0][0]);
-  glDrawArrays(GL_TRIANGLES, 0, vertecies.size());
+  if (_initEBO)
+    glDrawElements(mode, indices.size(), GL_UNSIGNED_INT, 0);
+  else
+    glDrawArrays(mode, 0, vertecies.size());
 
   attribObject.disable(mData.layoutVec3Color);
   attribObject.disable(mData.layoutVec3Vertex);
 
+  bufferElementsIndex.unbind();
   attribObject.unbind();
 }

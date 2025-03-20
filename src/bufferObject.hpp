@@ -1,16 +1,16 @@
-#ifndef VBO__HPP_
-#define VBO__HPP_
+#ifndef BUFFEROBJECT__HPP_
+#define BUFFEROBJECT__HPP_
 
 #include <objectGL.hpp>
 
 #include <type_traits>
 
-class vbo : public objectGL {
+class bufferObject : public objectGL {
 public:
-  vbo() = delete;
+  bufferObject() = delete;
 
-  vbo(GLenum _bufferType);
-  ~vbo();
+  bufferObject(GLenum _bufferType);
+  ~bufferObject();
 
 public:
   void bind();
@@ -24,7 +24,7 @@ private:
 };
 
 template <typename T>
-void vbo::loadData(GLuint size, const T *data, GLenum usage) {
+void bufferObject::loadData(GLuint size, const T *data, GLenum usage) {
   glBufferData(bufferType, size, data, usage);
 }
 

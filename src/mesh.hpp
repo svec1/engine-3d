@@ -1,14 +1,15 @@
-#ifndef OBJECTPHYSIC__HPP_
-#define OBJECTPHYSIC__HPP_
+#ifndef MESH__HPP_
+#define MESH__HPP_
 
 #include <glm/glm.hpp>
 
+#include <functional>
 #include <string_view>
 #include <vector>
 
+#include <bufferObject.hpp>
 #include <programShader.hpp>
 #include <vao.hpp>
-#include <vbo.hpp>
 
 struct metaDataShaderProgram {
   metaDataShaderProgram() = default;
@@ -50,18 +51,30 @@ class mesh {
 public:
   mesh() = default;
   mesh(const std::vector<glm::vec3> &_vertecies,
-       const std::vector<glm::vec3> &colors,
-       const dataShaderProgram      &dataSProgram);
+       const std::vector<glm::vec3> &_colors,
+       const dataShaderProgram     &&dataSProgram);
 
 public:
-  void      setPos(glm::vec3 pos);
-  glm::vec3 getPos();
-
+  void setPos(glm::vec3 pos);
   void setData(const std::vector<glm::vec3> &_vertecies,
-               const std::vector<glm::vec3> &colors,
-               const dataShaderProgram      &dataSProgram);
+               const std::vector<glm::vec3> &_colors,
+               const dataShaderProgram     &&dataSProgram);
 
-  std::shared_ptr<programShader> getProgramShader();
+  void setVBOData(const std::vector<glm::vec3> *_vertecies,
+                  const std::vector<glm::vec3> *_colors);
+
+  void setColors(const std::vector<glm::vec3> &colors);
+
+  glm::vec3                      getPos() const;
+  std::vector<glm::vec3>         getTransformVertecies() const;
+  std::shared_ptr<programShader> getProgramShader() const;
+
+  static glm::vec3
+  getVertex(const std::vector<glm::vec3> &vertecies,
+            std::function<bool(const glm::vec3 &v1, const glm::vec3 &v2)> f);
+
+public:
+  void initEBO(const std::vector<unsigned int> &indices);
 
 public:
   void move(glm::vec3 pos);
@@ -69,7 +82,8 @@ public:
   void scale(glm::vec3 scale);
 
 public:
-  void draw(const glm::mat4 &projection, const glm::mat4 &view);
+  void draw(const glm::mat4 &projection, const glm::mat4 &view,
+            GLenum mode = GL_TRIANGLES);
 
 private:
   void createShaderProgram(const dataShaderProgram &dataSProgram);
@@ -81,12 +95,17 @@ private:
   std::vector<glm::vec3> vertecies;
   std::vector<glm::vec3> colors;
 
+  std::vector<unsigned int> indices;
+
   std::shared_ptr<programShader> sProgram;
   metaDataShaderProgram          mData;
 
-  vao attribObject;
-  vbo bufferVertecies;
-  vbo bufferColors;
+  vao          attribObject;
+  bufferObject bufferVertecies;
+  bufferObject bufferElementsIndex;
+  bufferObject bufferColors;
+
+  bool _initEBO = false;
 };
 
 #endif

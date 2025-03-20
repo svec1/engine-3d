@@ -41,4 +41,3 @@ glm::mat4 camera::getViewMatrix(float deltaTime) {
   }
   return glm::lookAt(pos, pos + direction, up);
 }
-
