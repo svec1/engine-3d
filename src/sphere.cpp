@@ -1,10 +1,11 @@
 #include <sphere.hpp>
 
-sphere::sphere(std::shared_ptr<programShader> sProgram, glm::vec3 pos,
-               float _radius)
-    : radius(_radius), mesh(getVerteciesSphere(_radius), {}, {sProgram}) {
-  setPos(pos);
+sphere::sphere(glm::vec3 pos, float _radius) : radius(_radius) { setPos(pos); }
 
+float sphere::getRadius() { return radius; }
+
+void sphere::init(const dataShaderProgram &&dataSProgram) {
+  setData(getVerteciesSphere(radius), {}, std::move(dataSProgram));
   initEBO(getIndicesSphere());
 }
 bool sphere::collision(const sphere &m) {
@@ -48,6 +49,5 @@ std::vector<unsigned int> sphere::getIndicesSphere() {
       indices.push_back(currentIndex + 1);
     }
   }
-
   return indices;
 }

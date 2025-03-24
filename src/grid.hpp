@@ -5,11 +5,16 @@
 
 class grid : public mesh {
 public:
-  grid(std::shared_ptr<programShader> sProgram, glm::vec3 pos,
-       unsigned int sliceCount = 16);
+  grid(glm::vec3 pos = glm::vec3(1.f), unsigned int _lineCount = 16);
+
+public:
+  void init(const dataShaderProgram &&dataSProgram) override final;
 
 public:
   static std::vector<glm::vec3> getVerteciesGrid(unsigned int lineCount);
+
+private:
+  unsigned int lineCount;
 };
 
 #endif

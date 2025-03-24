@@ -1,6 +1,6 @@
 #include <cube.hpp>
 
-const std::vector<glm::vec3> cube::verticesCube = {
+const std::vector<glm::vec3> cube::verteciesCube = {
     glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, 1.0f),
     glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(-1.0f, 1.0f, 1.0f),
     glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),
@@ -21,11 +21,13 @@ const std::vector<glm::vec3> cube::verticesCube = {
     glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f),
 };
 
-cube::cube(std::shared_ptr<programShader> sProgram, glm::vec3 pos,
-           glm::vec3 size)
-    : mesh(verticesCube, {}, {sProgram}) {
+cube::cube(glm::vec3 pos, glm::vec3 size) {
   setPos(pos);
   scale(size);
+}
+
+void cube::init(const dataShaderProgram &&dataSProgram) {
+  setData(verteciesCube, {}, std::move(dataSProgram));
 }
 
 bool cube::collision(const mesh &m) {

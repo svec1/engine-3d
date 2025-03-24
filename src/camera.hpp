@@ -17,6 +17,7 @@ public:
 
 public:
   glm::mat4 getViewMatrix(float deltaTime);
+  glm::vec3 getPos();
 
 private:
   glm::vec3 pos;
@@ -27,7 +28,7 @@ private:
   float hAngleRad = 0;
   float vAngleRad = 0;
 
-  float speedMovement = 4.f;
+  float speedMovement = 32;
   float speedMouseRad = 0.0006f;
 
   bool pressed = 0;

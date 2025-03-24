@@ -5,22 +5,15 @@
 
 #include <iostream>
 
-mesh::mesh(const std::vector<glm::vec3> &_vertecies,
-           const std::vector<glm::vec3> &_colors,
-           const dataShaderProgram     &&dataSProgram)
-    : vertecies(_vertecies), colors(_colors), bufferVertecies(GL_ARRAY_BUFFER),
+mesh::mesh()
+    : bufferVertecies(GL_ARRAY_BUFFER),
       bufferElementsIndex(GL_ELEMENT_ARRAY_BUFFER),
-      bufferColors(GL_ARRAY_BUFFER) {
-  if (colors.size() != vertecies.size())
-    colors = std::vector<glm::vec3>(vertecies.size(), glm::vec3(1.f, 1.f, 1.f));
-  createShaderProgram(dataSProgram);
-  initVAO();
-}
+      bufferColors(GL_ARRAY_BUFFER) {}
 
 void mesh::createShaderProgram(const dataShaderProgram &dataSProgram) {
-  if (dataSProgram.vertexShader.empty()) {
+  if (dataSProgram.vertexShader.empty())
     sProgram = dataSProgram.sProgram;
-  } else {
+  else {
     sProgram = std::shared_ptr<programShader>(new programShader);
 
     sProgram->createShader(GL_VERTEX_SHADER, dataSProgram.vertexShader);
@@ -29,7 +22,8 @@ void mesh::createShaderProgram(const dataShaderProgram &dataSProgram) {
   }
 
   mData = dataSProgram.mData;
-  mData.locationUniformMVP = sProgram->getLocUniform(mData.nameUniformMVP);
+  mData.locationUniformVP = sProgram->getLocUniform(mData.nameUniformVP);
+  mData.locationUniformM = sProgram->getLocUniform(mData.nameUniformM);
 }
 void mesh::initVAO() {
   attribObject.bind();
@@ -86,11 +80,13 @@ void mesh::scale(glm::vec3 scale) { model = glm::scale(model, scale); }
 void mesh::setData(const std::vector<glm::vec3> &_vertecies,
                    const std::vector<glm::vec3> &_colors,
                    const dataShaderProgram     &&dataSProgram) {
-  sProgram->dump();
-  vertecies = _vertecies;
-  colors = _colors;
   createShaderProgram(dataSProgram);
-  initVAO();
+  if (_colors.size() != _vertecies.size()) {
+    colors =
+        std::vector<glm::vec3>(_vertecies.size(), glm::vec3(1.f, 1.f, 1.f));
+    setVBOData(&_vertecies, nullptr);
+  } else
+    setVBOData(&_vertecies, &_colors);
 }
 void mesh::setVBOData(const std::vector<glm::vec3> *_vertecies,
                       const std::vector<glm::vec3> *_colors) {
@@ -103,6 +99,10 @@ void mesh::setVBOData(const std::vector<glm::vec3> *_vertecies,
 }
 void mesh::setColors(const std::vector<glm::vec3> &colors) {
   setVBOData(nullptr, &colors);
+}
+void mesh::setColor(glm::vec3 color) {
+  std::vector<glm::vec3> nColors(vertecies.size(), color);
+  setVBOData(nullptr, &nColors);
 }
 glm::vec3 mesh::getVertex(
     const std::vector<glm::vec3>                                 &vertecies,
@@ -122,24 +122,25 @@ void mesh::draw(const glm::mat4 &projection, const glm::mat4 &view,
   }
 
   attribObject.bind();
-  bufferElementsIndex.bind();
 
   attribObject.enable(mData.layoutVec3Vertex);
   attribObject.enable(mData.layoutVec3Color);
 
   sProgram->use();
 
-  glm::mat4 MVP = projection * view * model;
+  glm::mat4 VP = projection * view;
 
-  glUniformMatrix4fv(mData.locationUniformMVP, 1, GL_FALSE, &MVP[0][0]);
-  if (_initEBO)
+  glUniformMatrix4fv(mData.locationUniformVP, 1, GL_FALSE, &VP[0][0]);
+  glUniformMatrix4fv(mData.locationUniformM, 1, GL_FALSE, &model[0][0]);
+  if (_initEBO) {
+    bufferElementsIndex.bind();
     glDrawElements(mode, indices.size(), GL_UNSIGNED_INT, 0);
-  else
+    bufferElementsIndex.unbind();
+  } else
     glDrawArrays(mode, 0, vertecies.size());
 
   attribObject.disable(mData.layoutVec3Color);
   attribObject.disable(mData.layoutVec3Vertex);
 
-  bufferElementsIndex.unbind();
   attribObject.unbind();
 }

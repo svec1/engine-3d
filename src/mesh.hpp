@@ -14,29 +14,32 @@
 struct metaDataShaderProgram {
   metaDataShaderProgram() = default;
   metaDataShaderProgram(GLuint _lV3Vertex, GLuint _lV3Color,
-                        std::string _nameUniformMVP)
+                        std::string _nameUniformVP, std::string _nameUniformM)
       : layoutVec3Vertex(_lV3Vertex), layoutVec3Color(_lV3Color),
-        nameUniformMVP(_nameUniformMVP) {}
+        nameUniformVP(_nameUniformVP), nameUniformM(_nameUniformM) {}
 
 public:
   GLuint layoutVec3Vertex;
   GLuint layoutVec3Color;
-  GLuint locationUniformMVP;
+  GLuint locationUniformVP, locationUniformM;
 
-  std::string nameUniformMVP;
+  std::string nameUniformVP, nameUniformM;
 };
 
 struct dataShaderProgram {
   dataShaderProgram(std::shared_ptr<programShader> _sProgram,
                     GLuint _lV3Vertex = 0, GLuint _lV3Color = 1,
-                    std::string _nameUniformMVP = "MVP")
-      : sProgram(_sProgram), mData(_lV3Vertex, _lV3Color, _nameUniformMVP) {}
+                    std::string _nameUniformVP = "VP",
+                    std::string _nameUniformM = "M")
+      : sProgram(_sProgram),
+        mData(_lV3Vertex, _lV3Color, _nameUniformVP, _nameUniformM) {}
 
   dataShaderProgram(std::string_view _vShader, std::string_view _fShader,
                     GLuint _lV3Vertex = 0, GLuint _lV3Color = 1,
-                    std::string _nameUniformMVP = "MVP")
+                    std::string _nameUniformVP = "VP",
+                    std::string _nameUniformM = "M")
       : vertexShader(_vShader), fragmentShader(_fShader),
-        mData(_lV3Vertex, _lV3Color, _nameUniformMVP) {}
+        mData(_lV3Vertex, _lV3Color, _nameUniformVP, _nameUniformM) {}
 
 public:
   std::string vertexShader;
@@ -48,33 +51,34 @@ public:
 };
 
 class mesh {
-public:
-  mesh() = default;
-  mesh(const std::vector<glm::vec3> &_vertecies,
-       const std::vector<glm::vec3> &_colors,
-       const dataShaderProgram     &&dataSProgram);
+protected:
+  mesh();
 
-public:
-  void setPos(glm::vec3 pos);
+  mesh(const mesh &) = delete;
+  void operator=(const mesh &) = delete;
+
+protected:
   void setData(const std::vector<glm::vec3> &_vertecies,
                const std::vector<glm::vec3> &_colors,
                const dataShaderProgram     &&dataSProgram);
 
-  void setVBOData(const std::vector<glm::vec3> *_vertecies,
-                  const std::vector<glm::vec3> *_colors);
+  void initEBO(const std::vector<unsigned int> &indices);
 
-  void setColors(const std::vector<glm::vec3> &colors);
+protected:
+  virtual void init(const dataShaderProgram &&dataSProgram) = 0;
 
-  glm::vec3                      getPos() const;
+public:
+  void      setColors(const std::vector<glm::vec3> &colors);
+  void      setColor(glm::vec3 color);
+  void      setPos(glm::vec3 pos);
+  glm::vec3 getPos() const;
+
   std::vector<glm::vec3>         getTransformVertecies() const;
   std::shared_ptr<programShader> getProgramShader() const;
 
   static glm::vec3
   getVertex(const std::vector<glm::vec3> &vertecies,
             std::function<bool(const glm::vec3 &v1, const glm::vec3 &v2)> f);
-
-public:
-  void initEBO(const std::vector<unsigned int> &indices);
 
 public:
   void move(glm::vec3 pos);
@@ -88,6 +92,9 @@ public:
 private:
   void createShaderProgram(const dataShaderProgram &dataSProgram);
   void initVAO();
+
+  void setVBOData(const std::vector<glm::vec3> *_vertecies,
+                  const std::vector<glm::vec3> *_colors);
 
 private:
   glm::mat4 model{1.f};

@@ -32,6 +32,12 @@ void camera::keyboardCallback(int key) {
     tmpPosDirection = right;
   else if (key == GLFW_KEY_A)
     tmpPosDirection = -right;
+  else if (key == GLFW_KEY_SPACE)
+    pos.y += 1;
+  else if (key == GLFW_KEY_LEFT_SHIFT) {
+    pos.y -= 1;
+    return;
+  }
   pressed = 1;
 }
 glm::mat4 camera::getViewMatrix(float deltaTime) {
@@ -41,3 +47,4 @@ glm::mat4 camera::getViewMatrix(float deltaTime) {
   }
   return glm::lookAt(pos, pos + direction, up);
 }
+glm::vec3 camera::getPos() { return pos; }

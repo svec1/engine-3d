@@ -5,14 +5,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <camera.hpp>
-#include <cube.hpp>
-#include <grid.hpp>
-#include <sphere.hpp>
+#include <universe.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <algorithm>
+#include <ctime>
 #include <iostream>
 
 static const char *vertex_shader_text =
@@ -20,11 +19,12 @@ static const char *vertex_shader_text =
     "layout (location = 0) in vec3 vPos;\n"
     "layout (location = 1) in vec3 vClr;\n"
     "out vec3 VFragColor;\n"
-    "uniform mat4 MVP;\n"
+    "uniform mat4 VP;\n"
+    "uniform mat4 M;\n"
     "void main()\n"
     "{\n"
     "    VFragColor = vClr;\n"
-    "    gl_Position = MVP * vec4(vPos, 1.0);\n"
+    "    gl_Position = VP * M * vec4(vPos, 1.0);\n"
     "}";
 
 static const char *fragment_shader_text = "#version 460\n"
@@ -35,7 +35,7 @@ static const char *fragment_shader_text = "#version 460\n"
                                           "    FragColor = VFragColor;\n"
                                           "}\n";
 
-camera cam({0, 0, 5});
+camera cam({0, 3, 0});
 
 static void error_callback(int error, const char *description) {
   fprintf(stderr, "Error: %s\n", description);
@@ -92,6 +92,8 @@ int main(void) {
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
 
+  std::srand(std::time({}));
+
   double prevTime = glfwGetTime();
 
   std::shared_ptr<programShader> sProgram(new programShader);
@@ -99,17 +101,13 @@ int main(void) {
   sProgram->createShader(GL_FRAGMENT_SHADER, fragment_shader_text);
   sProgram->link();
 
-  grid grid1(sProgram, {}, 12);
+  universe uv(0.0006);
+  uv.setProgramShader(sProgram);
 
-  sphere sphere1(sProgram, glm::vec3{0, 1.f, 2.f});
-  sphere sphere2(sProgram, glm::vec3{0.f, 0.f, 0.f});
+  uv.createObject(20000, 20, {260, 0, 250});
+  uv.createObject(200, 4, {60, 0, 50}, {0.01, 0, 0.1});
 
-  sphere1.setColors({400, glm::vec3(0.6f, 0.2f, 0.5f)});
-  sphere2.setColors({400, glm::vec3(0.3f, 0.6f, 0.2f)});
-
-  grid1.scale(glm::vec3{10.f, 1.f, 10.f});
-
-  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
 
   while (!glfwWindowShouldClose(window)) {
     double currentTime = glfwGetTime();
@@ -124,20 +122,17 @@ int main(void) {
       cam.keyboardCallback(GLFW_KEY_A);
     else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
       cam.keyboardCallback(GLFW_KEY_D);
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+      cam.keyboardCallback(GLFW_KEY_SPACE);
+    else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+      cam.keyboardCallback(GLFW_KEY_LEFT_SHIFT);
 
     glm::mat4 V = cam.getViewMatrix(deltaTime);
 
-    if (sphere1.collision(sphere2))
-      std::cout << "collision of sphere 1 and sphere 2\r";
-
-    sphere1.move(glm::vec3(0, -0.001f, -0.01f));
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    sphere1.draw(P, V);
-    // sphere2.draw(P, V);
-
-    grid1.draw(P, V, GL_LINES);
+    uv.simulation();
+    uv.render(P, V);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

@@ -10,8 +10,13 @@
 
 class sphere : public mesh {
 public:
-  sphere(std::shared_ptr<programShader> sProgram, glm::vec3 pos,
-         float _radius = 1);
+  sphere(glm::vec3 pos, float _radius = 1);
+
+public:
+  float getRadius();
+
+public:
+  void init(const dataShaderProgram &&dataSProgram) override final;
 
 public:
   bool collision(const sphere &m);
