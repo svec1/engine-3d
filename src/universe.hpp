@@ -10,7 +10,8 @@ public:
   universe(const float _gravityConstant = 1);
 
 public:
-  void setProgramShader(std::shared_ptr<programShader> _sProgram);
+  void setProgramsShader(std::shared_ptr<programShader> _sProgram,
+                         std::shared_ptr<programShader> _sProgramGrid);
 
 public:
   void createObject(float mass, float radius, glm::vec3 pos,

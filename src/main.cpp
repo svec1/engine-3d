@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <camera.hpp>
+#include <resourceManager.hpp>
 #include <universe.hpp>
 
 #include <stdio.h>
@@ -13,19 +14,6 @@
 #include <algorithm>
 #include <ctime>
 #include <iostream>
-
-static const char *vertex_shader_text =
-    "#version 460\n"
-    "layout (location = 0) in vec3 vPos;\n"
-    "layout (location = 1) in vec3 vClr;\n"
-    "out vec3 VFragColor;\n"
-    "uniform mat4 VP;\n"
-    "uniform mat4 M;\n"
-    "void main()\n"
-    "{\n"
-    "    VFragColor = vClr;\n"
-    "    gl_Position = VP * M * vec4(vPos, 1.0);\n"
-    "}";
 
 static const char *fragment_shader_text = "#version 460\n"
                                           "in vec3 VFragColor;\n"
@@ -93,19 +81,19 @@ int main(void) {
   glEnable(GL_DEPTH_TEST);
 
   std::srand(std::time({}));
-
   double prevTime = glfwGetTime();
 
-  std::shared_ptr<programShader> sProgram(new programShader);
-  sProgram->createShader(GL_VERTEX_SHADER, vertex_shader_text);
-  sProgram->createShader(GL_FRAGMENT_SHADER, fragment_shader_text);
-  sProgram->link();
+  resourceManager rManager("res/shaders");
 
   universe uv(0.0006);
-  uv.setProgramShader(sProgram);
+  uv.setProgramsShader(
+      rManager.createProgramShader("objectVertexShader.glsl",
+                                   "objectFragmentShader.glsl"),
+      rManager.createProgramShader("gridVertexShader.glsl",
+                                   "gridFragmentShader.glsl"));
 
   uv.createObject(20000, 20, {260, 0, 250});
-  uv.createObject(200, 4, {60, 0, 50}, {0.01, 0, 0.1});
+  uv.createObject(2000, 15, {60, 0, 50}, {0.01, 0, 0.1});
 
   glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
 

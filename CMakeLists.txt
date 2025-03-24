@@ -11,3 +11,6 @@ add_executable(${ENGINE_NAME} ${FILE_SOURCE})
 target_link_libraries(${ENGINE_NAME} glfw)
 
 include_directories(glfw/include glad/include glm src/)
+
+file(REMOVE ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/res)
+file(COPY res DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
