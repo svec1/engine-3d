@@ -35,8 +35,9 @@ resourceManager::createProgramShader(std::string_view fileNameVertexShader,
   lengthBuffer = vertexShader.tellg();
   vertexShader.seekg(0, vertexShader.beg);
 
-  tmpBuffer = new char[lengthBuffer];
+  tmpBuffer = new char[lengthBuffer+1];
   vertexShader.read(tmpBuffer, lengthBuffer);
+  tmpBuffer[lengthBuffer] = '\0';
   sProgram->createShader(GL_VERTEX_SHADER, tmpBuffer);
   delete[] tmpBuffer;
 
@@ -47,7 +48,8 @@ resourceManager::createProgramShader(std::string_view fileNameVertexShader,
   lengthBuffer = fragmentShader.tellg();
   fragmentShader.seekg(0, fragmentShader.beg);
 
-  tmpBuffer = new char[lengthBuffer];
+  tmpBuffer = new char[lengthBuffer+1];
+  tmpBuffer[lengthBuffer] = '\0';
   fragmentShader.read(tmpBuffer, lengthBuffer);
   sProgram->createShader(GL_FRAGMENT_SHADER, tmpBuffer);
   delete[] tmpBuffer;

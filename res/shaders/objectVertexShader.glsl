@@ -12,4 +12,4 @@ void main()
 {
     VFragColor = vClr;
     gl_Position = VP * M * vec4(vPos, 1.0);
-}
+} 

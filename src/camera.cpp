@@ -32,10 +32,12 @@ void camera::keyboardCallback(int key) {
     tmpPosDirection = right;
   else if (key == GLFW_KEY_A)
     tmpPosDirection = -right;
-  else if (key == GLFW_KEY_SPACE)
-    pos.y += 1;
+  else if (key == GLFW_KEY_SPACE){
+    pos.y += 2;
+    return;  
+  }
   else if (key == GLFW_KEY_LEFT_SHIFT) {
-    pos.y -= 1;
+    pos.y -= 2;
     return;
   }
   pressed = 1;

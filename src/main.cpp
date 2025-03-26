@@ -8,25 +8,14 @@
 #include <resourceManager.hpp>
 #include <universe.hpp>
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <algorithm>
 #include <ctime>
 #include <iostream>
 
-static const char *fragment_shader_text = "#version 460\n"
-                                          "in vec3 VFragColor;\n"
-                                          "out vec3 FragColor;\n"
-                                          "void main()\n"
-                                          "{\n"
-                                          "    FragColor = VFragColor;\n"
-                                          "}\n";
-
 camera cam({0, 3, 0});
 
 static void error_callback(int error, const char *description) {
-  fprintf(stderr, "Error: %s\n", description);
+  std::cerr << "Error: " <<  description << std::endl;
 }
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -93,7 +82,7 @@ int main(void) {
                                    "gridFragmentShader.glsl"));
 
   uv.createObject(20000, 20, {260, 0, 250});
-  uv.createObject(2000, 15, {60, 0, 50}, {0.01, 0, 0.1});
+  uv.createObject(2000, 5, {60, 0, 50}, {0.01, 0, 0.1});
 
   glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
 
