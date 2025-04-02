@@ -12,7 +12,7 @@
 #include <ctime>
 #include <iostream>
 
-camera cam({0, 3, 0});
+camera cam({260, 3, 250});
 
 static void error_callback(int error, const char *description) {
   std::cerr << "Error: " <<  description << std::endl;
@@ -49,7 +49,7 @@ int main(void) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-  window = glfwCreateWindow(1280, 960, "Simple example", NULL, NULL);
+  window = glfwCreateWindow(1280, 960, "engine-3d", NULL, NULL);
   if (!window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
@@ -70,25 +70,29 @@ int main(void) {
   glEnable(GL_DEPTH_TEST);
 
   std::srand(std::time({}));
+  
   double prevTime = glfwGetTime();
+  double currentTime, deltaTime, lastTimeFPS = 0;
 
   resourceManager rManager("res/shaders");
 
-  universe uv(0.0006);
+  universe uv(GRAVITY_CONST);
   uv.setProgramsShader(
       rManager.createProgramShader("objectVertexShader.glsl",
                                    "objectFragmentShader.glsl"),
       rManager.createProgramShader("gridVertexShader.glsl",
                                    "gridFragmentShader.glsl"));
 
-  uv.createObject(20000, 20, {260, 0, 250});
-  uv.createObject(2000, 5, {60, 0, 50}, {0.01, 0, 0.1});
-
+  uv.createObject(90000000, 50, {260, 0, 250});
+  uv.createObject(200000, 5, {60, 0, 50}, {0.3, 0, 1.5});
+	
   glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
 
+  int countRendered = 0;
+
   while (!glfwWindowShouldClose(window)) {
-    double currentTime = glfwGetTime();
-    double deltaTime = currentTime - prevTime;
+    currentTime = glfwGetTime();
+    deltaTime = currentTime - prevTime;
     prevTime = currentTime;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -113,10 +117,20 @@ int main(void) {
 
     glfwSwapBuffers(window);
     glfwPollEvents();
+
+    if((int)(currentTime-lastTimeFPS) == 1){
+	lastTimeFPS = currentTime; 
+    	system("clear");
+	std::cout << "FPS: " << countRendered << std::endl;
+	std::cout << "Camera position: x=" << cam.getPos().x << ", y=" << cam.getPos().y << ", z=" << cam.getPos().z << std::endl;
+	countRendered = 0;
+    }
+
+    ++countRendered;
   }
 
   glfwDestroyWindow(window);
 
   glfwTerminate();
-  exit(EXIT_SUCCESS);
+  exit(1); 
 }

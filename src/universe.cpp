@@ -72,6 +72,7 @@ void universe::render(const glm::mat4 &projection, const glm::mat4 &view) {
     objectComponents.push_back(components);
   }
   gr.getProgramShader()->use();
+  glUniform1f(gr.getProgramShader()->getLocUniform("gravityConstant"), gravityConstant);
   glUniform4fv(locObjectComponents, objectComponents.size(),
                glm::value_ptr(objectComponents[0]));
   gr.draw(projection, view, GL_LINES);

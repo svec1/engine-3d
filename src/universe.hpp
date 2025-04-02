@@ -5,6 +5,8 @@
 #include <physicObject.hpp>
 #include <vector>
 
+#define GRAVITY_CONST 0.000006
+
 class universe {
 public:
   universe(const float _gravityConstant = 1);
