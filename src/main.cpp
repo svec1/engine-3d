@@ -15,7 +15,7 @@
 camera cam({260, 3, 250});
 
 static void error_callback(int error, const char *description) {
-  std::cerr << "Error: " <<  description << std::endl;
+  std::cerr << "Error: " << description << std::endl;
 }
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -70,25 +70,32 @@ int main(void) {
   glEnable(GL_DEPTH_TEST);
 
   std::srand(std::time({}));
-  
+
+  int    countRendered = 0;
   double prevTime = glfwGetTime();
   double currentTime, deltaTime, lastTimeFPS = 0;
 
+  float speedSimulation = 1.f;
+
   resourceManager rManager("res/shaders");
 
-  universe uv(GRAVITY_CONST);
+  universe uv(GRAVITY_CONST * 100);
   uv.setProgramsShader(
       rManager.createProgramShader("objectVertexShader.glsl",
                                    "objectFragmentShader.glsl"),
       rManager.createProgramShader("gridVertexShader.glsl",
                                    "gridFragmentShader.glsl"));
 
-  uv.createObject(90000000, 50, {260, 0, 250});
-  uv.createObject(200000, 5, {60, 0, 50}, {0.3, 0, 1.5});
-	
-  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
+  // uv.createObject(9000000, 20, {260, 0, 250});
+  uv.createObject(9000000, 10, {260, 0, 250});
 
-  int countRendered = 0;
+  for (std::size_t i = 1; i <= 10; ++i) {
+    for (std::size_t j = 1; j <= 10; ++j) {
+      uv.createObject(10, i, {i * 100 + j, 0, j * 100 + i}, {0.1f, 0, 0.2f});
+    }
+  }
+
+  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
 
   while (!glfwWindowShouldClose(window)) {
     currentTime = glfwGetTime();
@@ -107,6 +114,10 @@ int main(void) {
       cam.keyboardCallback(GLFW_KEY_SPACE);
     else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
       cam.keyboardCallback(GLFW_KEY_LEFT_SHIFT);
+    // else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    // speedSimulation *= 1.05f;
+    // else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    // speedSimulation /= 1.05f;
 
     glm::mat4 V = cam.getViewMatrix(deltaTime);
 
@@ -118,12 +129,18 @@ int main(void) {
     glfwSwapBuffers(window);
     glfwPollEvents();
 
-    if((int)(currentTime-lastTimeFPS) == 1){
-	lastTimeFPS = currentTime; 
-    	system("clear");
-	std::cout << "FPS: " << countRendered << std::endl;
-	std::cout << "Camera position: x=" << cam.getPos().x << ", y=" << cam.getPos().y << ", z=" << cam.getPos().z << std::endl;
-	countRendered = 0;
+    if ((int)(currentTime - lastTimeFPS) == 1) {
+      lastTimeFPS = currentTime;
+
+      system("clear");
+
+      std::cout << "FPS: " << countRendered << std::endl;
+      std::cout << "Camera position: x=" << cam.getPos().x
+                << ", y=" << cam.getPos().y << ", z=" << cam.getPos().z
+                << std::endl;
+      std::cout << "Speed simulation: " << speedSimulation << std::endl;
+
+      countRendered = 0;
     }
 
     ++countRendered;
@@ -132,5 +149,5 @@ int main(void) {
   glfwDestroyWindow(window);
 
   glfwTerminate();
-  exit(1); 
+  exit(1);
 }

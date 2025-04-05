@@ -5,7 +5,7 @@
 #include <physicObject.hpp>
 #include <vector>
 
-#define GRAVITY_CONST 0.000006
+#define GRAVITY_CONST 0.0000006
 
 class universe {
 public:
@@ -27,7 +27,7 @@ public:
 public:
   std::shared_ptr<programShader> sProgram;
 
-  grid gr{glm::vec3{0, 0, 0}, 320};
+  grid gr{glm::vec3{0, 0, 0}, 512};
 
   float                                      gravityConstant;
   std::vector<std::unique_ptr<physicObject>> objects;

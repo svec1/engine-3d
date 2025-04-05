@@ -8,7 +8,7 @@
 universe::universe(const float _gravityConstant)
     : gravityConstant(_gravityConstant) {
   gr.setPos(glm::vec3{-250.f, 0, -250.f});
-  gr.scale(glm::vec3{1000.f, 1.f, 1000.f});
+  gr.scale(glm::vec3{2500.f, 1.f, 2500.f});
 }
 void universe::setProgramsShader(
     std::shared_ptr<programShader> _sProgramObjects,
@@ -72,7 +72,8 @@ void universe::render(const glm::mat4 &projection, const glm::mat4 &view) {
     objectComponents.push_back(components);
   }
   gr.getProgramShader()->use();
-  glUniform1f(gr.getProgramShader()->getLocUniform("gravityConstant"), gravityConstant);
+  glUniform1f(gr.getProgramShader()->getLocUniform("gravityConstant"),
+              gravityConstant);
   glUniform4fv(locObjectComponents, objectComponents.size(),
                glm::value_ptr(objectComponents[0]));
   gr.draw(projection, view, GL_LINES);

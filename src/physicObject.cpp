@@ -1,7 +1,5 @@
 #include <physicObject.hpp>
 
-#include <iostream>
-
 physicObject::physicObject(glm::vec3 pos, float radius, float _mass)
     : mass(_mass), sphere(pos, radius) {}
 

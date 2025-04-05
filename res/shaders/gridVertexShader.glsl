@@ -12,12 +12,12 @@ uniform mat4 VP;
 uniform float gravityConstant;
 uniform vec4 objectComponents[256];
 
-void main()
-{
+void main(){
     vec4 tmpPos = M * vec4(vPos, 1.0);
+    
     for(int i = 0; i < 256; ++i){
         float distance = (pow(objectComponents[i].x-tmpPos.x, 2)+pow(objectComponents[i].z-tmpPos.z, 2))/pow(objectComponents[i].w*4, 2) + 0.6;
-	tmpPos.y -= (objectComponents[i].y*gravityConstant)/distance;
+	    tmpPos.y -= (objectComponents[i].y*gravityConstant)/distance;
     }
     gl_Position = VP * tmpPos;
     
