@@ -9,11 +9,13 @@
 
 class universe {
 public:
-  universe(const float _gravityConstant = 1);
+  universe(const float _gravityConstant = GRAVITY_CONST);
 
 public:
   void setProgramsShader(std::shared_ptr<programShader> _sProgram,
                          std::shared_ptr<programShader> _sProgramGrid);
+
+  glm::vec3 getPosObject(unsigned int index);
 
 public:
   void createObject(float mass, float radius, glm::vec3 pos,

@@ -12,8 +12,8 @@ public:
   void physicMove(glm::vec3 acceleration);
 
 public:
-  float getMass();
-  float getSpeed();
+  float     getMass();
+  glm::vec3 getSpeed();
 
   void setSpeed(glm::vec3 _speed);
 

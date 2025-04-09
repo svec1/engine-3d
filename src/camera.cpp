@@ -41,6 +41,13 @@ void camera::keyboardCallback(int key) {
   }
   pressed = 1;
 }
+
+void camera::setSpeedMovement(float _speedMovement) {
+  speedMovement = _speedMovement;
+}
+void camera::setPos(glm::vec3 _pos) { pos = _pos; }
+
+float     camera::getSpeedMovement() { return speedMovement; }
 glm::mat4 camera::getViewMatrix(float deltaTime) {
   if (pressed) {
     pos += tmpPosDirection * deltaTime * speedMovement;

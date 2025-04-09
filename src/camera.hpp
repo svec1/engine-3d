@@ -16,6 +16,10 @@ public:
   void keyboardCallback(int key);
 
 public:
+  void setSpeedMovement(float _speedMovement);
+  void setPos(glm::vec3 _pos);
+
+  float     getSpeedMovement();
   glm::mat4 getViewMatrix(float deltaTime);
   glm::vec3 getPos();
 

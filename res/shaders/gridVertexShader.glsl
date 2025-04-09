@@ -10,7 +10,7 @@ uniform mat4 M;
 uniform mat4 VP;
 
 uniform float gravityConstant;
-uniform vec4 objectComponents[256];
+uniform vec4 objectComponents[1024];
 
 void main(){
     vec4 tmpPos = M * vec4(vPos, 1.0);

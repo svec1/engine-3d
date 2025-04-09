@@ -1,5 +1,9 @@
 #include <glad/glad.h>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -37,6 +41,10 @@ static void cursorCallback(GLFWwindow *window, double xPos, double yPos) {
   cam.cursorCallback(window, xPos, yPos);
 }
 
+static void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+  cam.setSpeedMovement(cam.getSpeedMovement() + (8 * yoffset));
+}
+
 int main(void) {
   GLFWwindow *window;
   GLuint      vertex_buffer;
@@ -54,9 +62,9 @@ int main(void) {
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
-
   glfwSetKeyCallback(window, key_callback);
   glfwSetCursorPosCallback(window, cursorCallback);
+  glfwSetScrollCallback(window, scrollCallback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   glfwMakeContextCurrent(window);
@@ -64,6 +72,23 @@ int main(void) {
   glfwSwapInterval(1);
 
   glfwWindowHint(GLFW_SAMPLES, 4);
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 460");
+
+  io.IniFilename = nullptr;
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_MULTISAMPLE);
@@ -75,8 +100,6 @@ int main(void) {
   double prevTime = glfwGetTime();
   double currentTime, deltaTime, lastTimeFPS = 0;
 
-  float speedSimulation = 1.f;
-
   resourceManager rManager("res/shaders");
 
   universe uv(GRAVITY_CONST * 100);
@@ -86,16 +109,16 @@ int main(void) {
       rManager.createProgramShader("gridVertexShader.glsl",
                                    "gridFragmentShader.glsl"));
 
-  // uv.createObject(9000000, 20, {260, 0, 250});
-  uv.createObject(9000000, 10, {260, 0, 250});
+  uv.createObject(9000000, 50, {0, 0, 0}, {0, 0.f, 0.05f});
+  // uv.createObject(1000000, 30, {1000, 0, 200}, {0, 0.f, 0.09f});
 
-  for (std::size_t i = 1; i <= 10; ++i) {
-    for (std::size_t j = 1; j <= 10; ++j) {
-      uv.createObject(10, i, {i * 100 + j, 0, j * 100 + i}, {0.1f, 0, 0.2f});
+  for (std::size_t i = 1; i <= 18; ++i) {
+    for (std::size_t j = 1; j <= 18; ++j) {
+      uv.createObject(1000, i, {i * 100 + j, i * 10 + j * 10, j * 100 + i});
     }
   }
 
-  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
+  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 5000.0f);
 
   while (!glfwWindowShouldClose(window)) {
     currentTime = glfwGetTime();
@@ -114,17 +137,47 @@ int main(void) {
       cam.keyboardCallback(GLFW_KEY_SPACE);
     else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
       cam.keyboardCallback(GLFW_KEY_LEFT_SHIFT);
-    // else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    // speedSimulation *= 1.05f;
-    // else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    // speedSimulation /= 1.05f;
-
-    glm::mat4 V = cam.getViewMatrix(deltaTime);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glm::vec3 tmpPosObject = uv.getPosObject(0);
+    cam.setPos(
+        glm::vec3{tmpPosObject.x, cam.getPos().y, tmpPosObject.z - 1000});
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    {
+      static float f = 0.0f;
+      static int   counter = 0;
+
+      ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!"
+                                     // and append into it.
+
+      ImGui::Text("This is some useful text."); // Display some text (you can
+                                                // use a format strings too)
+      ImGui::SliderFloat("float", &f, 0.0f,
+                         1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+
+      if (ImGui::Button("Button")) // Buttons return true when clicked (most
+                                   // widgets return true when edited/activated)
+        counter++;
+      ImGui::SameLine();
+      ImGui::Text("counter = %d", counter);
+
+      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                  1000.0f / io.Framerate, io.Framerate);
+      ImGui::End();
+    }
+
+    glm::mat4 V = cam.getViewMatrix(deltaTime);
+
     uv.simulation();
     uv.render(P, V);
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -138,7 +191,6 @@ int main(void) {
       std::cout << "Camera position: x=" << cam.getPos().x
                 << ", y=" << cam.getPos().y << ", z=" << cam.getPos().z
                 << std::endl;
-      std::cout << "Speed simulation: " << speedSimulation << std::endl;
 
       countRendered = 0;
     }
