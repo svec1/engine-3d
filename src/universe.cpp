@@ -15,16 +15,25 @@ void universe::setProgramsShader(
     std::shared_ptr<programShader> _sProgramGrid) {
   sProgram = _sProgramObjects;
   gr.init({_sProgramGrid});
+
+  grLocObjectComponents =
+      gr.getProgramShader()->getLocUniform("objectComponents");
+  grLocGravityConstant =
+      gr.getProgramShader()->getLocUniform("gravityConstant");
 }
-glm::vec3 universe::getPosObject(unsigned int index) {
+void universe::setGridVisible(bool _gridVisible) { gridVisible = _gridVisible; }
+
+grid                               &universe::getGrid() { return gr; }
+std::shared_ptr<const physicObject> universe::getObject(unsigned int index) {
   if (index >= objects.size())
-    return glm::vec3{0.f};
-  return objects[index]->getPos();
+    return {};
+  return objects[index];
 }
+bool universe::getGridVisible() { return gridVisible; }
 
 void universe::createObject(float mass, float radius, glm::vec3 pos,
                             glm::vec3 speed) {
-  objects.push_back(std::make_unique<physicObject>(pos, radius, mass));
+  objects.push_back(std::make_shared<physicObject>(pos, radius, mass));
   objects[objects.size() - 1]->init({sProgram});
 
   objects[objects.size() - 1]->setColor(glm::vec3{
@@ -66,23 +75,60 @@ void universe::simulation() {
   }
 }
 void universe::render(const glm::mat4 &projection, const glm::mat4 &view) {
-  GLuint locObjectComponents =
-      gr.getProgramShader()->getLocUniform("objectComponents");
-
   std::vector<glm::vec4> objectComponents;
+
+  static float lastMassiveObjectY = 0.f;
+
+  float massiveObject = 0.f;
+  float massiveObjectY = 0.f;
+
   for (auto &object : objects) {
     object->draw(projection, view);
 
-    glm::vec4 components = glm::vec4(object->getPos(), object->getRadius());
-    components.y = object->getMass();
+    if (gridVisible) {
+      glm::vec3 objectPos = object->getPos();
+      glm::vec4 components = glm::vec4(objectPos, object->getRadius());
+      components.y = object->getMass();
 
-    objectComponents.push_back(components);
+      objectComponents.push_back(components);
+
+      if (components.y > massiveObject) {
+        massiveObjectY = objectPos.y;
+        massiveObject = components.y;
+      }
+    }
   }
-  gr.getProgramShader()->use();
-  glUniform1f(gr.getProgramShader()->getLocUniform("gravityConstant"),
-              gravityConstant);
-  glUniform4fv(locObjectComponents, objectComponents.size(),
-               glm::value_ptr(objectComponents[0]));
-  gr.draw(projection, view, GL_LINES);
+
+  if (gridVisible) {
+    // Moving the grid
+    {
+      auto cameraPos = glm::inverse(view)[3];
+      auto gridPos = gr.getPos();
+
+      glm::vec3 maxVertexGrid = gr.getMaxTransformVertex(),
+                minVertexGrid = gr.getMinTransformVertex();
+
+      if (cameraPos.x + 1000 > maxVertexGrid.x)
+        gr.move({0.1, 0, 0});
+      else if (cameraPos.x - 1000 <= minVertexGrid.x)
+        gr.move({-0.1, 0, 0});
+
+      if (cameraPos.z + 1000 >= maxVertexGrid.z)
+        gr.move({0, 0, 0.1});
+      else if (cameraPos.z - 1000 < minVertexGrid.z)
+        gr.move({0, 0, -0.1});
+
+      gr.move({0, massiveObjectY - lastMassiveObjectY, 0});
+      lastMassiveObjectY = massiveObjectY;
+    }
+
+    gr.getProgramShader()->use();
+
+    glUniform1f(grLocGravityConstant, gravityConstant);
+    glUniform4fv(grLocObjectComponents, objectComponents.size(),
+                 glm::value_ptr(objectComponents[0]));
+
+    gr.draw(projection, view, GL_LINES);
+  }
 }
 

@@ -1,3 +1,6 @@
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include <glad/glad.h>
 
 #include <imgui.h>
@@ -16,33 +19,49 @@
 #include <ctime>
 #include <iostream>
 
-camera cam({260, 3, 250});
+static camera cam({260, 3, 250});
+static bool   gridVisible = true;
+static bool   cursorAttention = true;
 
-static void error_callback(int error, const char *description) {
+void error_callback(int error, const char *description) {
   std::cerr << "Error: " << description << std::endl;
 }
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                         int mods) {
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
   static bool glLineMode = false;
 
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GLFW_TRUE);
-  else if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+  else if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+    if (cursorAttention)
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    else
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    cursorAttention = !cursorAttention;
+  } else if (key == GLFW_KEY_L && action == GLFW_PRESS) {
     if (!glLineMode)
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     else
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineMode = !glLineMode;
+  } else if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    gridVisible = !gridVisible;
+}
+
+void cursorCallback(GLFWwindow *window, double xPos, double yPos) {
+  if (cursorAttention) {
+    int wWidth, wHeight;
+    glfwGetWindowSize(window, &wWidth, &wHeight);
+    cam.cursorCallback(wWidth, wHeight, xPos, yPos);
+    glfwSetCursorPos(window, wWidth / 2, wHeight / 2);
   }
 }
 
-static void cursorCallback(GLFWwindow *window, double xPos, double yPos) {
-  cam.cursorCallback(window, xPos, yPos);
-}
-
-static void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
-  cam.setSpeedMovement(cam.getSpeedMovement() + (8 * yoffset));
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+  if (int newSpeedMovement = cam.getSpeedMovement() + (8 * yoffset);
+      newSpeedMovement >= 0)
+    cam.setSpeedMovement(newSpeedMovement);
 }
 
 int main(void) {
@@ -58,14 +77,16 @@ int main(void) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
   window = glfwCreateWindow(1280, 960, "engine-3d", NULL, NULL);
+
   if (!window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
+
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetKeyCallback(window, key_callback);
   glfwSetCursorPosCallback(window, cursorCallback);
   glfwSetScrollCallback(window, scrollCallback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   glfwMakeContextCurrent(window);
   gladLoadGL();
@@ -77,12 +98,9 @@ int main(void) {
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
-  io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-  io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-  // Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -96,13 +114,13 @@ int main(void) {
 
   std::srand(std::time({}));
 
-  int    countRendered = 0;
   double prevTime = glfwGetTime();
-  double currentTime, deltaTime, lastTimeFPS = 0;
+  double currentTime, deltaTime;
 
   resourceManager rManager("res/shaders");
 
   universe uv(GRAVITY_CONST * 100);
+
   uv.setProgramsShader(
       rManager.createProgramShader("objectVertexShader.glsl",
                                    "objectFragmentShader.glsl"),
@@ -110,15 +128,19 @@ int main(void) {
                                    "gridFragmentShader.glsl"));
 
   uv.createObject(9000000, 50, {0, 0, 0}, {0, 0.f, 0.05f});
-  // uv.createObject(1000000, 30, {1000, 0, 200}, {0, 0.f, 0.09f});
 
-  for (std::size_t i = 1; i <= 18; ++i) {
-    for (std::size_t j = 1; j <= 18; ++j) {
+  std::size_t iCountPlanets = 16;
+  std::size_t jCountPlanets = 16;
+
+  std::size_t countPlanets = iCountPlanets * jCountPlanets;
+
+  for (std::size_t i = 1; i <= iCountPlanets; ++i) {
+    for (std::size_t j = 1; j <= jCountPlanets; ++j) {
       uv.createObject(1000, i, {i * 100 + j, i * 10 + j * 10, j * 100 + i});
     }
   }
 
-  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 5000.0f);
+  glm::mat4 P = glm::perspective(80.0f, 4.0f / 3.0f, 0.1f, 10000.0f);
 
   while (!glfwWindowShouldClose(window)) {
     currentTime = glfwGetTime();
@@ -126,76 +148,58 @@ int main(void) {
     prevTime = currentTime;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-      cam.keyboardCallback(GLFW_KEY_W);
+      cam.keyboardCallback(cameraAction::FORWARD);
     else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-      cam.keyboardCallback(GLFW_KEY_S);
+      cam.keyboardCallback(cameraAction::BACK);
     else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-      cam.keyboardCallback(GLFW_KEY_A);
+      cam.keyboardCallback(cameraAction::LEFT);
     else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-      cam.keyboardCallback(GLFW_KEY_D);
+      cam.keyboardCallback(cameraAction::RIGHT);
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-      cam.keyboardCallback(GLFW_KEY_SPACE);
+      cam.keyboardCallback(cameraAction::TOP);
     else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-      cam.keyboardCallback(GLFW_KEY_LEFT_SHIFT);
+      cam.keyboardCallback(cameraAction::BOTTOM);
+
+    if (uv.getGridVisible() != gridVisible)
+      uv.setGridVisible(gridVisible);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::vec3 tmpPosObject = uv.getPosObject(0);
-    cam.setPos(
-        glm::vec3{tmpPosObject.x, cam.getPos().y, tmpPosObject.z - 1000});
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    {
-      static float f = 0.0f;
-      static int   counter = 0;
-
-      ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!"
-                                     // and append into it.
-
-      ImGui::Text("This is some useful text."); // Display some text (you can
-                                                // use a format strings too)
-      ImGui::SliderFloat("float", &f, 0.0f,
-                         1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-
-      if (ImGui::Button("Button")) // Buttons return true when clicked (most
-                                   // widgets return true when edited/activated)
-        counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                  1000.0f / io.Framerate, io.Framerate);
-      ImGui::End();
-    }
+    // Camera movement behind the first object
+    /*
+     glm::vec3 tmpPosObject = uv.getObject(0)->getPos();
+     cam.setPos(glm::vec3{tmpPosObject.x, cam.getPos().y, tmpPosObject.z -
+     1000});
+    */
 
     glm::mat4 V = cam.getViewMatrix(deltaTime);
 
     uv.simulation();
     uv.render(P, V);
 
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    {
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+
+      ImGui::Begin("Simulation information");
+
+      ImGui::Text("%i objects are simulated", countPlanets);
+      ImGui::Text("Grid visibility: %i", gridVisible);
+      ImGui::Text("Camera position: x=%.1f, y=%.1f, z=%.1f", cam.getPos().x,
+                  cam.getPos().y, cam.getPos().z);
+      ImGui::Text("Camera movement speed: %.0f", cam.getSpeedMovement());
+      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                  1000.0f / io.Framerate, io.Framerate);
+
+      ImGui::End();
+
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
-
-    if ((int)(currentTime - lastTimeFPS) == 1) {
-      lastTimeFPS = currentTime;
-
-      system("clear");
-
-      std::cout << "FPS: " << countRendered << std::endl;
-      std::cout << "Camera position: x=" << cam.getPos().x
-                << ", y=" << cam.getPos().y << ", z=" << cam.getPos().z
-                << std::endl;
-
-      countRendered = 0;
-    }
-
-    ++countRendered;
   }
 
   glfwDestroyWindow(window);

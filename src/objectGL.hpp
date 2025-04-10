@@ -12,12 +12,12 @@ protected:
   ~objectGL() = default;
 
 public:
-  inline GLuint getHandle();
+  inline GLuint getHandle() const;
 
 protected:
   GLuint handle = 0;
 };
 
-inline GLuint objectGL::getHandle() { return handle; }
+inline GLuint objectGL::getHandle() const { return handle; }
 
 #endif

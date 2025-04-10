@@ -3,8 +3,8 @@
 physicObject::physicObject(glm::vec3 pos, float radius, float _mass)
     : mass(_mass), sphere(pos, radius) {}
 
-float     physicObject::getMass() { return mass; }
-glm::vec3 physicObject::getSpeed() { return speed; }
+float     physicObject::getMass() const { return mass; }
+glm::vec3 physicObject::getSpeed() const { return speed; }
 
 void physicObject::setSpeed(glm::vec3 _speed) { speed = _speed; }
 

@@ -60,7 +60,15 @@ void mesh::initEBO(const std::vector<unsigned int> &_indices) {
 void mesh::setPos(glm::vec3 pos) {
   model = glm::translate(glm::mat4(1.f), pos);
 }
-glm::vec3              mesh::getPos() const { return model[3]; }
+
+glm::vec3 mesh::getPos() const { return model[3]; }
+glm::vec3 mesh::getMaxTransformVertex() const {
+  return model * glm::vec4(maxVertex, 1.f);
+}
+glm::vec3 mesh::getMinTransformVertex() const {
+  return model * glm::vec4(minVertex, 1.f);
+}
+
 std::vector<glm::vec3> mesh::getTransformVertecies() const {
   std::vector<glm::vec3> transformVertecies;
   for (const auto &vertex : vertecies)
@@ -87,6 +95,16 @@ void mesh::setData(const std::vector<glm::vec3> &_vertecies,
     setVBOData(&_vertecies, nullptr);
   } else
     setVBOData(&_vertecies, &_colors);
+
+  minVertex =
+      getVertex(vertecies, [](const glm::vec3 &v1, const glm::vec3 &v2) {
+        return v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z;
+      });
+
+  maxVertex =
+      getVertex(vertecies, [](const glm::vec3 &v1, const glm::vec3 &v2) {
+        return v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z;
+      });
 }
 void mesh::setVBOData(const std::vector<glm::vec3> *_vertecies,
                       const std::vector<glm::vec3> *_colors) {
@@ -109,7 +127,7 @@ glm::vec3 mesh::getVertex(
     std::function<bool(const glm::vec3 &v1, const glm::vec3 &v2)> f) {
   glm::vec3 tmp = vertecies[0];
   for (int i = 1; i < vertecies.size(); ++i)
-    if (!f(tmp, vertecies[i]))
+    if (f(tmp, vertecies[i]))
       tmp = vertecies[i];
   return tmp;
 }

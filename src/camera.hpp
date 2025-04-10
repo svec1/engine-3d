@@ -1,19 +1,18 @@
 #ifndef CAMERA__HPP_
 #define CAMERA__HPP_
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+enum class cameraAction { FORWARD = 0, BACK, LEFT, RIGHT, TOP, BOTTOM };
 
 class camera {
 public:
   camera(glm::vec3 _pos);
 
 public:
-  void cursorCallback(GLFWwindow *window, double xPos, double yPos);
-  void keyboardCallback(int key);
+  void cursorCallback(int wWidth, int wHeight, double xPos, double yPos);
+  void keyboardCallback(cameraAction action);
 
 public:
   void setSpeedMovement(float _speedMovement);

@@ -68,10 +68,13 @@ protected:
   virtual void init(const dataShaderProgram &&dataSProgram) = 0;
 
 public:
-  void      setColors(const std::vector<glm::vec3> &colors);
-  void      setColor(glm::vec3 color);
-  void      setPos(glm::vec3 pos);
+  void setColors(const std::vector<glm::vec3> &colors);
+  void setColor(glm::vec3 color);
+  void setPos(glm::vec3 pos);
+
   glm::vec3 getPos() const;
+  glm::vec3 getMaxTransformVertex() const;
+  glm::vec3 getMinTransformVertex() const;
 
   std::vector<glm::vec3>         getTransformVertecies() const;
   std::shared_ptr<programShader> getProgramShader() const;
@@ -101,6 +104,8 @@ private:
 
   std::vector<glm::vec3> vertecies;
   std::vector<glm::vec3> colors;
+
+  glm::vec3 minVertex, maxVertex;
 
   std::vector<unsigned int> indices;
 

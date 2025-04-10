@@ -2,12 +2,7 @@
 
 camera::camera(glm::vec3 _pos) : pos(_pos) {}
 
-void camera::cursorCallback(GLFWwindow *window, double xPos, double yPos) {
-  int wWidth, wHeight;
-
-  glfwGetWindowSize(window, &wWidth, &wHeight);
-  glfwSetCursorPos(window, wWidth / 2, wHeight / 2);
-
+void camera::cursorCallback(int wWidth, int wHeight, double xPos, double yPos) {
   hAngleRad += speedMouseRad * (wWidth / 2 - xPos);
   if (float tmpVAngleRad = speedMouseRad * (wHeight / 2 - yPos);
       (vAngleRad < 1.55 || tmpVAngleRad < 0) &&
@@ -23,20 +18,20 @@ void camera::cursorCallback(GLFWwindow *window, double xPos, double yPos) {
 
   up = -glm::cross(right, direction);
 }
-void camera::keyboardCallback(int key) {
-  if (key == GLFW_KEY_W)
+void camera::keyboardCallback(cameraAction action) {
+  if (action == cameraAction::FORWARD)
     tmpPosDirection = direction;
-  else if (key == GLFW_KEY_S)
+  else if (action == cameraAction::BACK)
     tmpPosDirection = -direction;
-  else if (key == GLFW_KEY_D)
+  else if (action == cameraAction::RIGHT)
     tmpPosDirection = right;
-  else if (key == GLFW_KEY_A)
+  else if (action == cameraAction::LEFT)
     tmpPosDirection = -right;
-  else if (key == GLFW_KEY_SPACE) {
-    pos.y += 2;
+  else if (action == cameraAction::TOP) {
+    pos.y += speedMovement / 64;
     return;
-  } else if (key == GLFW_KEY_LEFT_SHIFT) {
-    pos.y -= 2;
+  } else if (action == cameraAction::BOTTOM) {
+    pos.y -= speedMovement / 64;
     return;
   }
   pressed = 1;

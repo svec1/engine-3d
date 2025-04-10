@@ -14,8 +14,11 @@ public:
 public:
   void setProgramsShader(std::shared_ptr<programShader> _sProgram,
                          std::shared_ptr<programShader> _sProgramGrid);
+  void setGridVisible(bool _gridVisible = true);
 
-  glm::vec3 getPosObject(unsigned int index);
+  grid                               &getGrid();
+  std::shared_ptr<const physicObject> getObject(unsigned int index);
+  bool                                getGridVisible();
 
 public:
   void createObject(float mass, float radius, glm::vec3 pos,
@@ -29,10 +32,13 @@ public:
 public:
   std::shared_ptr<programShader> sProgram;
 
-  grid gr{glm::vec3{0, 0, 0}, 512};
+  grid   gr{glm::vec3{0, 0, 0}, 320};
+  GLuint grLocObjectComponents, grLocGravityConstant;
+  bool   gridVisible = true;
 
-  float                                      gravityConstant;
-  std::vector<std::unique_ptr<physicObject>> objects;
+  float gravityConstant;
+
+  std::vector<std::shared_ptr<physicObject>> objects;
 };
 
 #endif
