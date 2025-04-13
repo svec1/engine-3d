@@ -6,13 +6,18 @@
 resourceManager::resourceManager(std::string_view _directory)
     : directory(_directory) {}
 
+void resourceManager::setDirectoryShaders(std::string_view _directoryShader) {
+  directoryShader = _directoryShader;
+}
+
 std::shared_ptr<programShader>
 resourceManager::createProgramShader(std::string_view fileNameVertexShader,
                                      std::string_view fileNameFragmentShader) {
   std::shared_ptr<programShader> sProgram(new programShader);
 
-  std::ifstream vertexShader((directory + "/") + fileNameVertexShader.data());
-  std::ifstream fragmentShader((directory + "/") +
+  std::ifstream vertexShader(directory + directoryShader +
+                             fileNameVertexShader.data());
+  std::ifstream fragmentShader(directory + directoryShader +
                                fileNameFragmentShader.data());
 
   char        *tmpBuffer = nullptr;

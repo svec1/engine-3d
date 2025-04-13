@@ -3,7 +3,6 @@
 layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vClr;
 
-out vec4 newVPos;
 out vec3 VFragColor;
 
 uniform mat4 M;
@@ -22,5 +21,4 @@ void main(){
     gl_Position = VP * tmpPos;
     
     VFragColor = vClr;    
-    newVPos = tmpPos;
 }

@@ -8,7 +8,7 @@ enum class cameraAction { FORWARD = 0, BACK, LEFT, RIGHT, TOP, BOTTOM };
 
 class camera {
 public:
-  camera(glm::vec3 _pos);
+  camera(glm::vec3 _pos = glm::vec3{0.f});
 
 public:
   void cursorCallback(int wWidth, int wHeight, double xPos, double yPos);

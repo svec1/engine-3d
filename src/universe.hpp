@@ -15,26 +15,35 @@ public:
   void setProgramsShader(std::shared_ptr<programShader> _sProgram,
                          std::shared_ptr<programShader> _sProgramGrid);
   void setGridVisible(bool _gridVisible = true);
+  void setGravityConstant(const float _gravityConstant = GRAVITY_CONST);
 
-  grid                               &getGrid();
-  std::shared_ptr<const physicObject> getObject(unsigned int index);
-  bool                                getGridVisible();
+  std::shared_ptr<const physicObject> getObject(unsigned int index) const;
+  bool                                getGridVisible() const;
+  const float                         getGravityConstant() const;
 
 public:
   void createObject(float mass, float radius, glm::vec3 pos,
                     glm::vec3 speed = glm::vec3(0.f));
   void deleteObject(unsigned int index);
+  void deleteAllObjects();
+
+  void generate(std::size_t countPlanets, std::size_t minMass,
+                std::size_t maxMass, std::size_t minDistance);
 
 public:
   void simulation();
   void render(const glm::mat4 &projection, const glm::mat4 &view);
 
-public:
+  float calculateWorkSystem();
+
+private:
   std::shared_ptr<programShader> sProgram;
 
   grid   gr{glm::vec3{0, 0, 0}, 320};
   GLuint grLocObjectComponents, grLocGravityConstant;
   bool   gridVisible = true;
+
+  float lastW = 0.f;
 
   float gravityConstant;
 
