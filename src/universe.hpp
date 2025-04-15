@@ -23,6 +23,7 @@ public:
   bool        getGridVisible() const;
   bool        getTraceVisible() const;
   const float getGravityConstant() const;
+  std::size_t getCountObjects() const;
 
 public:
   void createObject(float mass, float radius, glm::vec3 pos,

@@ -2,6 +2,7 @@
 
 camera *simulation::camPtr;
 bool    simulation::simulationInit = false;
+bool    simulation::simulated = true;
 bool    simulation::gridVisible = true;
 bool    simulation::traceVisible = true;
 bool    simulation::cursorAttention = true;
@@ -36,6 +37,8 @@ void simulation::keyCallback(GLFWwindow *window, int key, int scancode,
     gridVisible = !gridVisible;
   else if (key == GLFW_KEY_T && action == GLFW_PRESS)
     traceVisible = !traceVisible;
+  else if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS)
+    simulated = !simulated;
 }
 void simulation::mouseButtonCallback(GLFWwindow *window, int button, int action,
                                      int mods) {
@@ -98,11 +101,12 @@ void simulation::init() {
 
 void simulation::initNewUniverse() {
   uv.createObject(90000000, 50, {60, 0, 260}, {0, 0, 0.04f});
-  for (std::size_t i = 1; i <= 16; ++i) {
-    for (std::size_t j = 1; j <= 16; ++j) {
+  for (std::size_t i = 1; i <= 24; ++i) {
+    for (std::size_t j = 1; j <= 24; ++j) {
       uv.createObject(1000, i, {i * 100 + j, i * 10 + j * 10, j * 100 + i});
     }
   }
+  countObjects = uv.getCountObjects();
 }
 
 void simulation::subWindowInfo() {
@@ -116,7 +120,15 @@ void simulation::subWindowInfo() {
               1000.0f / io->Framerate, io->Framerate);
   ImGui::PopStyleColor();
 
-  ImGui::Text("%i objects are simulated", countPlanets);
+  if (simulated) {
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 200, 0, 1000));
+    ImGui::Text("%i objects are simulated", uv.getCountObjects());
+    ImGui::PopStyleColor();
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200, 0, 0, 1000));
+    ImGui::Text("The simulation is stopped");
+    ImGui::PopStyleColor();
+  }
   ImGui::Text("Gravity constant: %f", uv.getGravityConstant());
   ImGui::Text("Grid visibility: %i", gridVisible);
   ImGui::Text("Trace objects visibility: %i", traceVisible);
@@ -139,12 +151,12 @@ void simulation::subWindowTools() {
   ImGui::Text("New universe");
 
   if (ImGui::Button("Generate"))
-    uv.generate(countPlanets, minMass, maxMass, minDistance);
+    uv.generate(countObjects, minMass, maxMass, minDistance);
 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   ImGui::BeginChild("New universe child", {345, 115}, true);
 
-  ImGui::SliderInt("Count planets", &countPlanets, 0, 1024);
+  ImGui::SliderInt("Count objects", &countObjects, 0, 1024);
 
   ImGui::SliderInt("Min mass", &minMass, 1, maxMass);
   ImGui::SliderInt("Max mass", &maxMass, 1, 1 / (gravityConstant / 100));
@@ -201,10 +213,11 @@ void simulation::simulationLoop() {
       glfwGetWindowSize(window, &wWidth, &wHeight);
 
       P = glm::perspective(80.0f, (float)wWidth / (float)wHeight, 0.1f,
-                           10000.0f);
+                           20000.0f);
       glm::mat4 V = cam.getViewMatrix(deltaTime);
 
-      uv.simulation();
+      if (simulated)
+        uv.simulation();
       uv.render(P, V);
     }
 

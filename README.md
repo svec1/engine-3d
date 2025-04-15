@@ -10,6 +10,7 @@ Supported only for linux and windows(not yet)
 ### Controls
   - WASD  movement of the camera relative to the OX/OZ axis
   - Space/Shift movement of the camera relative to the OY axis
+  - BACKSPACE stops or resumes the simulation
   - Right click to defocus the mouse pointer and vice versa
   - L Enable/disable drawing objects with lines.
   - G Enable/disable grid rendering

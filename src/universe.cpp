@@ -42,6 +42,7 @@ universe::getObject(unsigned int index) const {
 bool        universe::getGridVisible() const { return gridVisible; }
 bool        universe::getTraceVisible() const { return traceVisible; }
 const float universe::getGravityConstant() const { return gravityConstant; }
+std::size_t universe::getCountObjects() const { return objects.size(); }
 
 void universe::createObject(float mass, float radius, glm::vec3 pos,
                             glm::vec3 speed) {
@@ -85,26 +86,32 @@ void universe::simulation() {
   for (unsigned int i = 0; i < objects.size(); ++i) {
     glm::vec3 tmpForce(0.f);
 
+    const auto &object1 = objects[i];
+
+    const glm::vec3 posObject1 = object1->getPos();
+    const float     massObject1 = object1->getMass();
+
     for (unsigned int j = 0; j < objects.size(); ++j) {
       if (i == j)
         continue;
 
-      const glm::vec3 posObj1 = objects[i]->getPos();
-      const glm::vec3 posObj2 = objects[j]->getPos();
+      const auto &object2 = objects[j];
 
-      const float     r = std::max(glm::distance(posObj1, posObj2), 0.00001f);
-      const glm::vec3 direction = glm::normalize(posObj2 - posObj1);
+      const glm::vec3 posObject2 = object2->getPos();
+      const float     massObject2 = object2->getMass();
 
-      const float scalar = gravityConstant *
-                           (objects[i]->getMass() * objects[j]->getMass()) /
-                           pow(r, 2);
+      const float r = std::max(glm::distance(posObject1, posObject2), 0.00001f);
+      const glm::vec3 direction = glm::normalize(posObject2 - posObject1);
 
-      glm::vec3 tmpForce2 = direction * scalar;
+      const float scalar =
+          gravityConstant * (massObject1 * massObject2) / pow(r, 2);
+
+      const glm::vec3 tmpForce2 = direction * scalar;
       tmpForce += tmpForce2;
 
-      objects[j]->physicMove(tmpForce2 / objects[j]->getMass() * -1.f);
+      object2->physicMove(tmpForce2 / massObject2 * -1.f);
     }
-    objects[i]->physicMove(tmpForce / objects[i]->getMass());
+    object1->physicMove(tmpForce / massObject1);
   }
 }
 void universe::render(const glm::mat4 &projection, const glm::mat4 &view) {

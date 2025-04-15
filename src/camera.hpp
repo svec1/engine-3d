@@ -31,7 +31,7 @@ private:
   float hAngleRad = 0;
   float vAngleRad = 0;
 
-  float speedMovement = 128;
+  float speedMovement = 256;
   float speedMouseRad = 0.0006f;
 
   bool pressed = 0;

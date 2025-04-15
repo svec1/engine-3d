@@ -14,6 +14,8 @@ project(${ENGINE_NAME} LANGUAGES CXX C)
 add_subdirectory(glfw/)
 add_executable(${ENGINE_NAME} ${FILE_SOURCE})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 ")
+
 target_link_libraries(${ENGINE_NAME} glfw)
 
 include_directories(glfw/include glad/include imgui/ imgui/backends glm src/)

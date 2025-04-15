@@ -55,7 +55,7 @@ private:
   float gravityConstant = GRAVITY_CONST;
   int   coeffGravityConstant = 10;
 
-  int countPlanets = 100;
+  int countObjects;
   int minMass = 100, maxMass = 1 / (gravityConstant / 100);
   int minDistance = 100;
 
@@ -64,6 +64,7 @@ private:
 public:
   static camera *camPtr;
   static bool    simulationInit;
+  static bool    simulated;
   static bool    gridVisible;
   static bool    traceVisible;
   static bool    cursorAttention;
