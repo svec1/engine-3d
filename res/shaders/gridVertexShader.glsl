@@ -1,9 +1,9 @@
 #version 460
 
 layout (location = 0) in vec3 vPos;
-layout (location = 1) in vec3 vClr;
+layout (location = 1) in vec4 vClr;
 
-out vec3 VFragColor;
+out vec4 VFragColor;
 
 uniform mat4 M;
 uniform mat4 VP;

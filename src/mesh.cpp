@@ -36,9 +36,9 @@ void mesh::initVAO() {
   bufferVertecies.unbind();
 
   bufferColors.bind();
-  bufferColors.loadData(colors.size() * sizeof(glm::vec3), colors.data());
-  attribObject.defineAttrPoint(mData.layoutVec3Color, 3, GL_FLOAT, GL_FALSE,
-                               sizeof(glm::vec3));
+  bufferColors.loadData(colors.size() * sizeof(glm::vec4), colors.data());
+  attribObject.defineAttrPoint(mData.layoutVec3Color, 4, GL_FLOAT, GL_FALSE,
+                               sizeof(glm::vec4));
   bufferColors.unbind();
 
   attribObject.unbind();
@@ -60,6 +60,9 @@ void mesh::initEBO(const std::vector<unsigned int> &_indices) {
 void mesh::setPos(glm::vec3 pos) {
   model = glm::translate(glm::mat4(1.f), pos);
 }
+
+std::vector<glm::vec3> &mesh::getVertecies() { return vertecies; }
+std::vector<glm::vec4> &mesh::getColors() { return colors; }
 
 glm::vec3 mesh::getPos() const { return model[3]; }
 glm::vec3 mesh::getMaxTransformVertex() const {
@@ -86,12 +89,11 @@ void mesh::rotate(float angle) {
 void mesh::scale(glm::vec3 scale) { model = glm::scale(model, scale); }
 
 void mesh::setData(const std::vector<glm::vec3> &_vertecies,
-                   const std::vector<glm::vec3> &_colors,
+                   const std::vector<glm::vec4> &_colors,
                    const dataShaderProgram     &&dataSProgram) {
   createShaderProgram(dataSProgram);
   if (_colors.size() != _vertecies.size()) {
-    colors =
-        std::vector<glm::vec3>(_vertecies.size(), glm::vec3(1.f, 1.f, 1.f));
+    colors = std::vector<glm::vec4>(_vertecies.size(), glm::vec4{1.f});
     setVBOData(&_vertecies, nullptr);
   } else
     setVBOData(&_vertecies, &_colors);
@@ -106,20 +108,21 @@ void mesh::setData(const std::vector<glm::vec3> &_vertecies,
         return v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z;
       });
 }
+void mesh::updateData() { initVAO(); }
 void mesh::setVBOData(const std::vector<glm::vec3> *_vertecies,
-                      const std::vector<glm::vec3> *_colors) {
+                      const std::vector<glm::vec4> *_colors) {
   if (_vertecies)
     vertecies = *_vertecies;
   if (_colors)
     colors = *_colors;
 
-  initVAO();
+  updateData();
 }
-void mesh::setColors(const std::vector<glm::vec3> &colors) {
+void mesh::setColors(const std::vector<glm::vec4> &colors) {
   setVBOData(nullptr, &colors);
 }
-void mesh::setColor(glm::vec3 color) {
-  std::vector<glm::vec3> nColors(vertecies.size(), color);
+void mesh::setColor(glm::vec4 color) {
+  std::vector<glm::vec4> nColors(vertecies.size(), color);
   setVBOData(nullptr, &nColors);
 }
 glm::vec3 mesh::getVertex(

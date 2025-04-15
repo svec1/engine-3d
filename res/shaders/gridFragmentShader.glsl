@@ -1,7 +1,7 @@
 #version 460
 
-in vec3 VFragColor;
-out vec3 FragColor;
+in vec4 VFragColor;
+out vec4 FragColor;
 
 void main()
 {

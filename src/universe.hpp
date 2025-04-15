@@ -15,11 +15,14 @@ public:
   void setProgramsShader(std::shared_ptr<programShader> _sProgram,
                          std::shared_ptr<programShader> _sProgramGrid);
   void setGridVisible(bool _gridVisible = true);
+  void setTraceVisible(bool _traceVisible = true);
   void setGravityConstant(const float _gravityConstant = GRAVITY_CONST);
 
   std::shared_ptr<const physicObject> getObject(unsigned int index) const;
-  bool                                getGridVisible() const;
-  const float                         getGravityConstant() const;
+
+  bool        getGridVisible() const;
+  bool        getTraceVisible() const;
+  const float getGravityConstant() const;
 
 public:
   void createObject(float mass, float radius, glm::vec3 pos,
@@ -41,7 +44,9 @@ private:
 
   grid   gr{glm::vec3{0, 0, 0}, 320};
   GLuint grLocObjectComponents, grLocGravityConstant;
-  bool   gridVisible = true;
+
+  bool gridVisible = true;
+  bool traceVisible = true;
 
   float lastW = 0.f;
 

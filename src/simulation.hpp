@@ -65,6 +65,7 @@ public:
   static camera *camPtr;
   static bool    simulationInit;
   static bool    gridVisible;
+  static bool    traceVisible;
   static bool    cursorAttention;
 
 private:

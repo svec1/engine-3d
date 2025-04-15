@@ -2,6 +2,7 @@
 #define PHYSICOBJECT__HPP_
 
 #include <sphere.hpp>
+#include <trace.hpp>
 
 class physicObject : public sphere {
 public:
@@ -17,9 +18,11 @@ public:
 
   void setSpeed(glm::vec3 _speed);
 
-private:
-  float mass = 0.f;
+public:
+  trace traceObject;
 
+private:
+  float     mass = 0.f;
   glm::vec3 speed{0.f};
 };
 

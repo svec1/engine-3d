@@ -60,8 +60,9 @@ protected:
 
 protected:
   void setData(const std::vector<glm::vec3> &_vertecies,
-               const std::vector<glm::vec3> &_colors,
+               const std::vector<glm::vec4> &_colors,
                const dataShaderProgram     &&dataSProgram);
+  void updateData();
 
   void initEBO(const std::vector<unsigned int> &indices);
 
@@ -69,9 +70,12 @@ protected:
   virtual void init(const dataShaderProgram &&dataSProgram) = 0;
 
 public:
-  void setColors(const std::vector<glm::vec3> &colors);
-  void setColor(glm::vec3 color);
+  void setColors(const std::vector<glm::vec4> &colors);
+  void setColor(glm::vec4 color);
   void setPos(glm::vec3 pos);
+
+  std::vector<glm::vec3> &getVertecies();
+  std::vector<glm::vec4> &getColors();
 
   glm::vec3 getPos() const;
   glm::vec3 getMaxTransformVertex() const;
@@ -98,13 +102,13 @@ private:
   void initVAO();
 
   void setVBOData(const std::vector<glm::vec3> *_vertecies,
-                  const std::vector<glm::vec3> *_colors);
+                  const std::vector<glm::vec4> *_colors);
 
 private:
   glm::mat4 model{1.f};
 
   std::vector<glm::vec3> vertecies;
-  std::vector<glm::vec3> colors;
+  std::vector<glm::vec4> colors;
 
   glm::vec3 minVertex, maxVertex;
 

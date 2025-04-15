@@ -6,7 +6,7 @@ grid::grid(glm::vec3 pos, unsigned int _lineCount) : lineCount(_lineCount) {
 
 void grid::init(const dataShaderProgram &&dataSProgram) {
   setData(getVerteciesGrid(lineCount), {}, std::move(dataSProgram));
-  setColor(glm::vec3(0.3f, 0.3f, 0.3f));
+  setColor(glm::vec4{0.3f, 0.3f, 0.3f, 1.f});
 }
 
 std::vector<glm::vec3> grid::getVerteciesGrid(unsigned int lineCount) {

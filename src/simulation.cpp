@@ -3,6 +3,7 @@
 camera *simulation::camPtr;
 bool    simulation::simulationInit = false;
 bool    simulation::gridVisible = true;
+bool    simulation::traceVisible = true;
 bool    simulation::cursorAttention = true;
 
 simulation::simulation(GLFWwindow *_window, std::string_view resourcePath)
@@ -33,6 +34,8 @@ void simulation::keyCallback(GLFWwindow *window, int key, int scancode,
     glLineMode = !glLineMode;
   } else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     gridVisible = !gridVisible;
+  else if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    traceVisible = !traceVisible;
 }
 void simulation::mouseButtonCallback(GLFWwindow *window, int button, int action,
                                      int mods) {
@@ -104,7 +107,7 @@ void simulation::initNewUniverse() {
 
 void simulation::subWindowInfo() {
   ImGui::SetNextWindowPos({0, 0});
-  ImGui::SetNextWindowSize({360, 180});
+  ImGui::SetNextWindowSize({360, 200});
 
   ImGui::Begin("Simulation information");
 
@@ -116,6 +119,7 @@ void simulation::subWindowInfo() {
   ImGui::Text("%i objects are simulated", countPlanets);
   ImGui::Text("Gravity constant: %f", uv.getGravityConstant());
   ImGui::Text("Grid visibility: %i", gridVisible);
+  ImGui::Text("Trace objects visibility: %i", traceVisible);
   ImGui::Text("Camera position: x=%.1f, y=%.1f, z=%.1f", cam.getPos().x,
               cam.getPos().y, cam.getPos().z);
   ImGui::Text("Camera movement speed: %.0f", cam.getSpeedMovement());
@@ -127,7 +131,7 @@ void simulation::subWindowInfo() {
   ImGui::End();
 }
 void simulation::subWindowTools() {
-  ImGui::SetNextWindowPos({0, 180});
+  ImGui::SetNextWindowPos({0, 200});
   ImGui::SetNextWindowSize({360, 400});
 
   ImGui::Begin("Tools");
@@ -179,6 +183,8 @@ void simulation::simulationLoop() {
 
     if (uv.getGridVisible() != gridVisible)
       uv.setGridVisible(gridVisible);
+    if (uv.getTraceVisible() != traceVisible)
+      uv.setTraceVisible(traceVisible);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

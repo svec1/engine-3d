@@ -25,6 +25,9 @@ void universe::setProgramsShader(
       gr.getProgramShader()->getLocUniform("gravityConstant");
 }
 void universe::setGridVisible(bool _gridVisible) { gridVisible = _gridVisible; }
+void universe::setTraceVisible(bool _traceVisible) {
+  traceVisible = _traceVisible;
+}
 
 void universe::setGravityConstant(const float _gravityConstant) {
   gravityConstant = _gravityConstant;
@@ -37,16 +40,18 @@ universe::getObject(unsigned int index) const {
   return objects[index];
 }
 bool        universe::getGridVisible() const { return gridVisible; }
+bool        universe::getTraceVisible() const { return traceVisible; }
 const float universe::getGravityConstant() const { return gravityConstant; }
 
 void universe::createObject(float mass, float radius, glm::vec3 pos,
                             glm::vec3 speed) {
   objects.push_back(std::make_shared<physicObject>(pos, radius, mass));
   objects[objects.size() - 1]->init({sProgram});
+  objects[objects.size() - 1]->traceObject.init({sProgram});
 
-  objects[objects.size() - 1]->setColor(glm::vec3{
+  objects[objects.size() - 1]->setColor(glm::vec4{
       1.f / (float)(std::rand() % 10), 1.f / (float)(std::rand() % 10),
-      1.f / (float)(std::rand() % 10)});
+      1.f / (float)(std::rand() % 10), 1.f});
   objects[objects.size() - 1]->setSpeed(speed);
 }
 void universe::deleteObject(unsigned int index) {
@@ -112,6 +117,13 @@ void universe::render(const glm::mat4 &projection, const glm::mat4 &view) {
 
   for (auto &object : objects) {
     object->draw(projection, view);
+    if (traceVisible) {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      object->traceObject.addPosition(object->getPos());
+      object->traceObject.draw(projection, view, GL_LINES);
+      glDisable(GL_BLEND);
+    }
 
     if (gridVisible) {
       glm::vec3 objectPos = object->getPos();

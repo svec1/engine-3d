@@ -18,8 +18,8 @@ target_link_libraries(${ENGINE_NAME} glfw)
 
 include_directories(glfw/include glad/include imgui/ imgui/backends glm src/)
 
-file(REMOVE ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/res)
-file(COPY res DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+file(REMOVE ${CMAKE_BINARY_DIR}/res)
+file(COPY res DESTINATION ${CMAKE_BINARY_DIR})
 
 install(TARGETS ${ENGINE_NAME} DESTINATION bin)
 install(DIRECTORY res DESTINATION bin)
