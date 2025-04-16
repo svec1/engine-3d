@@ -1,3 +1,5 @@
+// Copyright (c) 2025 svec
+
 #include <algorithm>
 
 #include <simulation.hpp>

@@ -5,7 +5,7 @@
 
 class trace : public mesh {
 public:
-  trace(const glm::vec3 startPos, const std::size_t length = 10);
+  trace(const glm::vec3 startPos, const std::size_t length = 250);
 
 public:
   void init(const dataShaderProgram &&dataSProgram) override final;

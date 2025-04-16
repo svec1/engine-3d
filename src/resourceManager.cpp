@@ -16,9 +16,11 @@ resourceManager::createProgramShader(std::string_view fileNameVertexShader,
   std::shared_ptr<programShader> sProgram(new programShader);
 
   std::ifstream vertexShader(directory + directoryShader +
-                             fileNameVertexShader.data());
+                                 fileNameVertexShader.data(),
+                             std::ios::binary);
   std::ifstream fragmentShader(directory + directoryShader +
-                               fileNameFragmentShader.data());
+                                   fileNameFragmentShader.data(),
+                               std::ios::binary);
 
   char        *tmpBuffer = nullptr;
   unsigned int lengthBuffer = 0;
